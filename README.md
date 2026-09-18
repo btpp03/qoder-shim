@@ -227,3 +227,18 @@ qodercn --help | grep -i model
 | `qoder_shim.py` | shim 本体（纯标准库，单文件） |
 | `test_shim.py` | 29 个测试：纯函数 + HTTP 端到端 |
 | `interop_check.py` | 用真实 `openai` SDK 验证协议兼容性 |
+| `DEPLOYMENT.md` | 能部署在哪、不能部署在哪（含 Clawdi 的详细分析） |
+
+---
+
+## 部署到哪里
+
+**唯一要求：一个能常驻进程 + 能开端口的主机。**
+
+- ✅ 普通 Linux VPS（systemd unit）
+- ✅ 支持长驻服务的容器平台
+- ❌ **Clawdi（`clawdi.ai`）不行** —— 它只部署 Hermes/OpenClaw Agent 运行时，
+  且官方明确把"前台运行进程"列为不持久。详见 [DEPLOYMENT.md](DEPLOYMENT.md)。
+- ⚠️ 注意 `clawdi.com` 是无关的待售域名，真站在 `clawdi.ai`
+
+系统级配置示例和公网暴露的安全注意事项都在 [DEPLOYMENT.md](DEPLOYMENT.md)。
