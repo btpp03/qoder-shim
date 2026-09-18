@@ -1,0 +1,46 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Floor supported by the README is 3.9.
+        python-version: ["3.9", "3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Syntax check
+        run: python3 -m py_compile qoder_shim.py test_shim.py interop_check.py
+
+      - name: Unit + HTTP end-to-end tests (fake CLI)
+        run: python3 test_shim.py
+
+      - name: Install openai SDK
+        run: python3 -m pip install --quiet openai
+
+      - name: Interop check with the real openai SDK
+        run: python3 interop_check.py
+
+      - name: Guard against committed secrets
+        run: |
+          # Fail the build if a real-looking token ever lands in the tree.
+          if grep -rnE 'ghp_[A-Za-z0-9]{20,}|pt-[A-Za-z0-9]{24,}' \
+               --include='*.py' --include='*.md' --include='*.yml' . ; then
+            echo "::error::possible hardcoded credential detected"
+            exit 1
+          fi
+          echo "no hardcoded credentials found"
